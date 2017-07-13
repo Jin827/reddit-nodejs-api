@@ -1,3 +1,4 @@
+"use strict";
 var bcrypt = require('bcrypt-as-promised');
 var HASH_ROUNDS = 10;
 
@@ -35,7 +36,7 @@ class RedditAPI {
         return this.conn.query(
             `
             INSERT INTO posts (userId, title, url, createdAt, updatedAt)
-            VALUES (?, ?, ?, NOW(). NOW())`,
+            VALUES (?, ?, ?, NOW(), NOW())`,
             [post.userId, post.title, post.url]
         )
             .then(result => {
@@ -44,23 +45,28 @@ class RedditAPI {
     }
 
     getAllPosts() {
-        /*
-        strings delimited with ` are an ES2015 feature called "template strings".
-        they are more powerful than what we are using them for here. one feature of
-        template strings is that you can write them on multiple lines. if you try to
-        skip a line in a single- or double-quoted string, you would get a syntax error.
-
-        therefore template strings make it very easy to write SQL queries that span multiple
-        lines without having to manually split the string line by line.
-         */
+        
         return this.conn.query(
             `
             SELECT id, title, url, userId, createdAt, updatedAt
             FROM posts
             ORDER BY createdAt DESC
-            LIMIT 25`
-        );
+            LIMIT 25
+            JOIN users NOT IN (password)
+            ON users.id = posts.userId
+            WHERE posts.userId
+        `) 
+        
+        .then (function(data){
+            this.map(row => {
+                if (row.id === row.userId) {
+                    return this.conn.query}
+            })
+        })
+        
     }
 }
 
 module.exports = RedditAPI;
+
+

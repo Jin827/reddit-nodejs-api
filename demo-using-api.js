@@ -4,21 +4,21 @@ var mysql = require('promise-mysql');
 // create a connection to our Cloud9 server
 var connection = mysql.createPool({
     host     : 'localhost',
-    user     : 'ziad_saab', // CHANGE THIS :)
+    user     : 'jin827', // CHANGE THIS :)
     password : '',
     database: 'reddit',
     connectionLimit: 10
 });
 
 // load our API and pass it the connection
-var RedditAPI = require('./reddit');
+var RedditAPI = require('./reddit.js');
 
 var myReddit = new RedditAPI(connection);
 
 // We call this function to create a new user to test our API
 // The function will return the newly created user's ID in the callback
 myReddit.createUser({
-    username: 'PM_ME_CUTES',
+    username: 'PM_ME_CUTES2',
     password: 'abc123'
 })
     .then(newUserId => {
@@ -30,7 +30,7 @@ myReddit.createUser({
             title: 'Hello Reddit! This is my first post',
             url: 'http://www.digg.com',
             userId: newUserId
-        });
+        })
     })
     .then(newPostId => {
         // If we reach that part of the code, then we have a new post. We can print the ID
@@ -39,3 +39,8 @@ myReddit.createUser({
     .catch(error => {
         console.log(error.stack);
     });
+    
+   
+myReddit.getAllPosts();   
+   
+    
