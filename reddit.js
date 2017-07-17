@@ -33,6 +33,7 @@ class RedditAPI {
     }
 
     createPost(post) {
+        console.log(post, "each post")
         if (post.subredditId === false){
             throw new Error("subredditId is not defined")
         }
@@ -47,6 +48,9 @@ class RedditAPI {
             });
     }
             
+// placeholder (?) :
+// - No need to concatenate strings together for every parameter in the query
+// - Make sure to properly escape any given string 
 
     getAllPosts() {
         
@@ -61,10 +65,10 @@ class RedditAPI {
             JOIN votes v ON v.postId = p.id
             GROUP BY v.postId
             ORDER BY voteScore DESC
-            LIMIT 20
+            LIMIT 25
         `) 
         .then(function(data){
-                
+                console.log(data)
                 return data.map( (row) => {
                 return { 
                         id: row.id,
@@ -92,41 +96,7 @@ class RedditAPI {
         })
     }
     
-    
-    
-//     mysql> select * from votes;
-// +--------+--------+---------------+---------------------+---------------------+
-// | userId | postId | voteDirection | createdAt           | updatedAt           |
-// +--------+--------+---------------+---------------------+---------------------+
-// |      1 |      8 |             1 | 2017-07-14 23:58:24 | 2017-07-14 23:58:24 |
-// |      6 |      8 |             1 | 2017-07-15 15:07:34 | 2017-07-15 15:07:34 |
-// |      9 |      8 |             1 | 2017-07-15 15:11:52 | 2017-07-15 15:11:52 |
-// +--------+--------+---------------+---------------------+---------------------+
-// 3 rows in set (0.00 sec)
 
-
-    
-//     jin827:~/workspace (master) $ node demo-using-api.js 
-// Give me all the posts => [ { id: 1,
-//     title: 'Mary is the best TA ever!',
-//     url: null,
-//     user: 
-//      { id: 1,
-//       username: 'PM_ME_CUTES',
-//       createdAt: 2017-07-13T19:45:35.000Z,
-//       updatedAt: 2017-07-13T19:45:35.000Z },
-//     subredditId: 
-//      { id: 1,
-//       name: 'testing',
-//       description: 'all about hyojin',
-//       createdAt: 2017-07-14T15:58:08.000Z,
-//       updatedAt: 2017-07-14T15:58:08.000Z },
-//     voteScore: 3,
-//     createdAt: 2017-07-14T19:10:56.000Z,
-//     updatedAt: 2017-07-14T19:10:56.000Z } ]
-    
-    
-    
     
    createSubreddits(subreddit) {
        //console.log(subreddit, "subreddit info")
@@ -137,13 +107,13 @@ class RedditAPI {
         [ subreddit.name, subreddit.description ]
        )
        .then(result => {
-            console.log("create subreddit result =>", result)
+            // console.log("create subreddit result =>", result)
             return result.insertId;
         })
         .catch(error => {
                
             if (error.code === 'ER_DUP_ENTRY') {
-                throw new Error('...');
+                throw new Error("duplicate subreddits not allowed");
             }
             else {
                 throw error;

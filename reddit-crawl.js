@@ -1,39 +1,96 @@
+//To fill our database with some real Reddit data
+
 var request = require('request-promise');
 var mysql = require('promise-mysql');
 var RedditAPI = require('./reddit');
 
 function getSubreddits() {
-    return request(/* fill in the URL, it's always the same */)
+    return request("https://www.reddit.com/.json")
         .then(response => {
-            // Parse response as JSON and store in variable called result
-            var response; // continue this line
-
-            // Use .map to return a list of subreddit names (strings) only
-            return response.data.children.map(/* write a function */)
+            
+            var result = JSON.parse(response)
+            
+             // console.log('data result', JSON.stringify(result.data.children, null, 4))
+            
+            return result.data.children.map(inputData => { 
+                // console.log(inputData.data.subreddit)
+                return inputData.data.subreddit
+                
+            })
         });
 }
 
+// A list of subreddit names 
+//[ 'todayilearned',
+//   'sadcringe',
+//   'sports',
+//   'BlackPeopleTwitter',
+//   'OldSchoolCool',
+//   'aww',
+//   'mildlyinteresting',
+//   'creepy',
+//   'smashbros',
+//   'gifs',
+//   'pics',
+//   'funny',
+//   'PoliticalHumor',
+//   'Eyebleach',
+//   'marvelstudios',
+//   'instant_regret',
+//   'DesignPorn',
+//   'explainlikeimfive',
+//   'quityourbullshit',
+//   'gaming',
+//   'StarWars',
+//   'oldpeoplefacebook',
+//   'whitepeoplegifs',
+//   'movies',
+//   'food' ]
+
+
 function getPostsForSubreddit(subredditName) {
-    return request(/* fill in the URL, it will be based on subredditName */)
+    var url = 'https://www.reddit.com/r/' + subredditName + '.json?limit=50'
+    return request(url)
         .then(
             response => {
-                // Parse the response as JSON and store in variable called result
-                var response; // continue this line
-
-
-                return response.data.children
-                    .filter(/* write a function */) // Use .filter to remove self-posts
-                    .map(/* write a function */) // Use .map to return title/url/user objects only
+                // console.log(response)
+                var result = JSON.parse(response)
+                
+               // console.log(result) // Cannot read property 'children' of undefined
+               // console.log(result.data.children)
+               
+                return result.data.children
+                
+                    .filter( inputData => {
+                            return !inputData.data.is_self 
+                            
+                        }
+                        
+                    ) // Use .filter to remove self-posts
+                    .map( inputData => {
+                        var mappedObj = {
+                                         title: inputData.data.title,
+                                         url: inputData.data.url,
+                                         user: inputData.data.author
+                                        }
+                            // console.log('mapped data', JSON.stringify(mappedObj, null, 4))
+                        return mappedObj
+                        
+                    }) // Use .map to return title/url/user objects only
 
             }
-        );
-}
+        )
+};
+
+
+
+
 
 function crawl() {
     // create a connection to the DB
     var connection = mysql.createPool({
         host     : 'localhost',
-        user     : 'root',
+        user     : 'jin827',
         password : '',
         database: 'reddit',
         connectionLimit: 10
@@ -58,12 +115,12 @@ function crawl() {
                 2. Create the post using the subreddit Id, userId, title and url
      */
 
-    // Get a list of subreddits
+       //Get a list of subreddits
     getSubreddits()
         .then(subredditNames => {
             subredditNames.forEach(subredditName => {
                 var subId;
-                myReddit.createSubreddit({name: subredditName})
+                myReddit.createSubreddits({name: subredditName, description: subredditName})
                     .then(subredditId => {
                         subId = subredditId;
                         return getPostsForSubreddit(subredditName)
@@ -78,8 +135,10 @@ function crawl() {
                                 userIdPromise = myReddit.createUser({
                                     username: post.user,
                                     password: 'abc123'
-                            })
+                                })
+                            
                             .catch(function(err) {
+                                    console.log(err);
                                     return users[post.user];
                                 })
                             }
@@ -91,10 +150,23 @@ function crawl() {
                                     userId: userId,
                                     title: post.title,
                                     url: post.url
-                                });
-                            });
-                        });
-                    });
-            });
-        });
-}
+                                })
+                        })
+                    })
+            })
+        })
+    })
+        
+    .catch( err => { 
+       console.log(err, "ERROR") 
+    })
+};  
+
+
+//execute crawl and check your database to see if all the data got imported
+
+// getSubreddits();
+
+// getPostsForSubreddit('gaming'); // why it doesn't work with subredditName ?
+
+ crawl();

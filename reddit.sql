@@ -20,4 +20,28 @@ CREATE TABLE posts (
   updatedAt DATETIME NOT NULL,
   KEY userId (userId), -- why did we add this here? ask me :)
   CONSTRAINT validUser FOREIGN KEY (userId) REFERENCES users (id) ON DELETE SET NULL
+  
+);
+
+ALTER TABLE posts ADD subredditId INT;
+
+CREATE TABLE subreddits (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(30) UNIQUE,
+  description VARCHAR(200),
+  createdAt DATETIME,  
+  updatedAt DATETIME 
+);
+
+ALTER TABLE posts ADD CONSTRAINT validId FOREIGN KEY (subredditId) REFERENCES subreddits (id); 
+
+CREATE TABLE votes (
+  userId INT NOT NULL,
+  postId INT NOT NULL,
+  voteDirection TINYINT,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL,
+  PRIMARY KEY (userId, postId), 
+  FOREIGN KEY (userId) REFERENCES users (id) ON DELETE CASCADE, 
+  FOREIGN KEY (postId) REFERENCES posts (id) ON DELETE CASCADE 
 );
